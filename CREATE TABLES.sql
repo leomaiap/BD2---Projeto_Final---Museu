@@ -1,4 +1,6 @@
 --PostgreSQL
+--drop schema public cascade;
+--create schema public;
 
 CREATE TABLE "objetos" (
   "id_objeto" integer PRIMARY KEY,
@@ -93,41 +95,48 @@ CREATE TABLE "curadores" (
 
 CREATE TABLE "exposicoes_objetos" (
   "id_exposicao" integer,
-  "id_objeto" integer
+  "id_objeto" integer,
+  PRIMARY KEY ("id_exposicao", "id_objeto")
 );
 
 CREATE TABLE "patrocinadores_exposicoes" (
   "id_patrocinador" integer,
   "id_exposicao" integer,
-  "valor_doado" numeric
+  "valor_doado" numeric,
+  PRIMARY KEY ("id_patrocinador", "id_exposicao")
 );
 
 CREATE TABLE "curadores_exposicoes" (
   "id_curador" integer,
-  "id_exposicao" integer
+  "id_exposicao" integer,
+  PRIMARY KEY ("id_curador", "id_exposicao")
 );
 
 CREATE TABLE "funcionarios_exposicoes" (
   "id_funcionario" integer,
   "id_exposicao" integer,
-  "papel" varchar
+  "papel" varchar,
+  PRIMARY KEY ("id_funcionario", "id_exposicao")
 );
 
 CREATE TABLE "funcionarios_eventos" (
   "id_funcionario" integer,
   "id_evento" integer,
-  "papel" varchar
+  "papel" varchar,
+  PRIMARY KEY ("id_funcionario", "id_evento")
 );
 
 CREATE TABLE "eventos_visitantes" (
   "id_evento" integer,
   "id_visitante" integer,
-  "tipo_participacao" varchar
+  "tipo_participacao" varchar,
+  PRIMARY KEY ("id_evento", "id_visitante")
 );
 
 CREATE TABLE "eventos_exposicoes" (
+  "id_evento" integer,
   "id_exposicao" integer,
-  "id_evento" integer
+  PRIMARY KEY ("id_evento", "id_exposicao")
 );
 
 
