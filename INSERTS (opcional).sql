@@ -9,6 +9,8 @@ $$ LANGUAGE plpgsql;
 -- Inserções
 DO $$
 DECLARE
+	v_tipo_participacao TEXT;
+    v_papel TEXT;
     v_id_objeto INTEGER;
     v_id_exposicao INTEGER;
     v_id_visitante INTEGER;
@@ -162,97 +164,127 @@ BEGIN
 
     -- Inserir Exposições_Objetos
     FOR i IN 1..30 LOOP
-        INSERT INTO exposicoes_objetos (id_exposicao, id_objeto)
-        SELECT 
-            floor(random() * 10 + 1),
-            floor(random() * 20 + 1)
-        WHERE NOT EXISTS (
-            SELECT 1 FROM exposicoes_objetos 
-            WHERE id_exposicao = floor(random() * 10 + 1) 
-            AND id_objeto = floor(random() * 20 + 1)
-        );
-    END LOOP;
+    -- Gera valores aleatórios para id_exposicao e id_objeto
+    v_id_exposicao := floor(random() * 10 + 1);
+    v_id_objeto := floor(random() * 20 + 1);
+
+    -- Insere apenas se a combinação ainda não existir
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM exposicoes_objetos 
+        WHERE id_exposicao = v_id_exposicao 
+        AND id_objeto = v_id_objeto
+	    ) THEN
+	        INSERT INTO exposicoes_objetos (id_exposicao, id_objeto)
+	        VALUES (v_id_exposicao, v_id_objeto);
+	    END IF;
+	END LOOP;
 
     -- Inserir Patrocinadores_Exposicoes
-    FOR i IN 1..15 LOOP
-        INSERT INTO patrocinadores_exposicoes (id_patrocinador, id_exposicao, valor_doado)
-        SELECT 
-            floor(random() * 6 + 1),
-            floor(random() * 10 + 1),
-            floor(random() * 10000 + 1000)
-        WHERE NOT EXISTS (
-            SELECT 1 FROM patrocinadores_exposicoes 
-            WHERE id_patrocinador = floor(random() * 6 + 1) 
-            AND id_exposicao = floor(random() * 10 + 1)
-        );
-    END LOOP;
+	FOR i IN 1..15 LOOP
+    -- Gera valores aleatórios para id_patrocinador e id_exposicao
+    v_id_patrocinador := floor(random() * 6 + 1);
+    v_id_exposicao := floor(random() * 10 + 1);
+
+    -- Insere apenas se a combinação ainda não existir
+    IF NOT EXISTS (
+	        SELECT 1 
+	        FROM patrocinadores_exposicoes 
+	        WHERE id_patrocinador = v_id_patrocinador 
+	        AND id_exposicao = v_id_exposicao
+	    ) THEN
+	        INSERT INTO patrocinadores_exposicoes (id_patrocinador, id_exposicao, valor_doado)
+	        VALUES (v_id_patrocinador, v_id_exposicao, floor(random() * 10000 + 1000));
+	    END IF;
+	END LOOP;
 
     -- Inserir Curadores_Exposicoes
-    FOR i IN 1..10 LOOP
-        INSERT INTO curadores_exposicoes (id_curador, id_exposicao)
-        SELECT 
-            floor(random() * 5 + 1),
-            floor(random() * 10 + 1)
-        WHERE NOT EXISTS (
-            SELECT 1 FROM curadores_exposicoes 
-            WHERE id_curador = floor(random() * 5 + 1) 
-            AND id_exposicao = floor(random() * 10 + 1)
-        );
+    FOR i IN 1..20 LOOP
+        -- Gerar valores aleatórios
+        v_id_curador := floor(random() * 5 + 1);
+        v_id_exposicao := floor(random() * 10 + 1);
+
+        -- Verificar se a combinação já existe antes de inserir
+        IF NOT EXISTS (
+            SELECT 1
+            FROM curadores_exposicoes
+            WHERE id_curador = v_id_curador
+              AND id_exposicao = v_id_exposicao
+        ) THEN
+            INSERT INTO curadores_exposicoes (id_curador, id_exposicao)
+            VALUES (v_id_curador, v_id_exposicao);
+        END IF;
     END LOOP;
 
     -- Inserir Funcionarios_Exposicoes
-    FOR i IN 1..20 LOOP
-        INSERT INTO funcionarios_exposicoes (id_funcionario, id_exposicao, papel)
-        SELECT 
-            floor(random() * 15 + 1),
-            floor(random() * 10 + 1),
-            (ARRAY['Curador', 'Guia', 'Segurança', 'Suporte'])[floor(random() * 4 + 1)]
-        WHERE NOT EXISTS (
-            SELECT 1 FROM funcionarios_exposicoes 
-            WHERE id_funcionario = floor(random() * 15 + 1) 
-            AND id_exposicao = floor(random() * 10 + 1)
-        );
+    FOR i IN 1..25 LOOP
+        -- Gerar valores aleatórios
+        v_id_funcionario := floor(random() * 15 + 1);
+        v_id_exposicao := floor(random() * 10 + 1);
+        v_papel := (ARRAY['Curador', 'Guia', 'Segurança', 'Suporte'])[floor(random() * 4 + 1)];
+
+        -- Realizar a verificação e inserção
+        IF NOT EXISTS (
+            SELECT 1
+            FROM funcionarios_exposicoes
+            WHERE id_funcionario = v_id_funcionario
+              AND id_exposicao = v_id_exposicao
+        ) THEN
+            INSERT INTO funcionarios_exposicoes (id_funcionario, id_exposicao, papel)
+            VALUES (v_id_funcionario, v_id_exposicao, v_papel);
+        END IF;
     END LOOP;
 
     -- Inserir Funcionarios_Eventos
-    FOR i IN 1..25 LOOP
-        INSERT INTO funcionarios_eventos (id_funcionario, id_evento, papel)
-        SELECT 
-            floor(random() * 15 + 1),
-            floor(random() * 12 + 1),
-            (ARRAY['Coordenador', 'Auxiliar', 'Suporte', 'Segurança'])[floor(random() * 4 + 1)]
-        WHERE NOT EXISTS (
-            SELECT 1 FROM funcionarios_eventos 
-            WHERE id_funcionario = floor(random() * 15 + 1) 
-            AND id_evento = floor(random() * 12 + 1)
-        );
-    END LOOP;
+	FOR i IN 1..25 LOOP
+	    -- Gera valores aleatórios uma vez e armazena em variáveis
+	    v_id_funcionario := floor(random() * 15 + 1);
+	    v_id_evento := floor(random() * 12 + 1);
+	    v_papel := (ARRAY['Coordenador', 'Auxiliar', 'Suporte', 'Segurança'])[floor(random() * 4 + 1)];
+	
+	    -- Realiza o INSERT apenas se os valores não existirem
+	    IF NOT EXISTS (
+	        SELECT 1
+	        FROM funcionarios_eventos
+	        WHERE id_funcionario = v_id_funcionario
+	          AND id_evento = v_id_evento
+	    ) THEN
+	        INSERT INTO funcionarios_eventos (id_funcionario, id_evento, papel)
+	        VALUES (v_id_funcionario, v_id_evento, v_papel);
+	    END IF;
+	END LOOP;
 
     -- Inserir Eventos_Visitantes
-    FOR i IN 1..60 LOOP
-        INSERT INTO eventos_visitantes (id_evento, id_visitante, tipo_participacao)
-        SELECT 
-            floor(random() * 12 + 1),
-            floor(random() * 50 + 1),
-            (ARRAY['Participante', 'VIP', 'Convidado', 'Regular'])[floor(random() * 4 + 1)]
-        WHERE NOT EXISTS (
-            SELECT 1 FROM eventos_visitantes 
-            WHERE id_evento = floor(random() * 12 + 1) 
-            AND id_visitante = floor(random() * 50 + 1)
-        );
+    FOR i IN 1..30 LOOP
+        -- Gerar valores aleatórios
+        v_id_evento := floor(random() * 12 + 1);
+        v_id_visitante := floor(random() * 50 + 1);
+        v_tipo_participacao := (ARRAY['Participante', 'VIP', 'Convidado', 'Regular'])[floor(random() * 4 + 1)];
+
+        -- Verificar se a combinação já existe antes de inserir
+        IF NOT EXISTS (
+            SELECT 1
+            FROM eventos_visitantes
+            WHERE id_evento = v_id_evento
+              AND id_visitante = v_id_visitante
+        ) THEN
+            INSERT INTO eventos_visitantes (id_evento, id_visitante, tipo_participacao)
+            VALUES (v_id_evento, v_id_visitante, v_tipo_participacao);
+        END IF;
     END LOOP;
 
     -- Inserir Eventos_Exposicoes
-    FOR i IN 1..15 LOOP
-        INSERT INTO eventos_exposicoes (id_exposicao, id_evento)
-        SELECT 
-            floor(random() * 10 + 1),
-            floor(random() * 12 + 1)
-        WHERE NOT EXISTS (
-            SELECT 1 FROM eventos_exposicoes 
-            WHERE id_exposicao = floor(random() * 10 + 1) 
-            AND id_evento = floor(random() * 12 + 1)
-        );
+    FOR i IN 1..50 LOOP
+        -- Gerar valores aleatórios
+        v_id_evento := floor(random() * 12 + 1);
+        v_id_exposicao := floor(random() * 10 + 1);
+
+        -- Verificar se a combinação já existe
+        IF NOT EXISTS (SELECT 1 FROM eventos_exposicoes WHERE id_evento = v_id_evento AND id_exposicao = v_id_exposicao) THEN
+            -- Inserir os dados
+            INSERT INTO eventos_exposicoes (id_evento, id_exposicao)
+            VALUES (v_id_evento, v_id_exposicao);
+        END IF;
     END LOOP;
 
 END $$;
