@@ -123,7 +123,7 @@ BEGIN
             floor(random() * 50 + 1),
             floor(random() * 12 + 1),
             random_date('2024-01-01'::timestamp, '2024-12-31'::timestamp),
-            floor(random() * 100 + 50)
+            20
         );
     END LOOP;
 
