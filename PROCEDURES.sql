@@ -104,4 +104,75 @@ id_objeto | valor_doacao
 SELECT redistribuir_doacoes();
 
 -------------------------------------------------------------------------------------------
+--2 Gerar Relatório Completo de um Evento
 
+CREATE PROCEDURE gerar_relatorio_evento(IN evento_id INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_evento_nome VARCHAR;
+    v_evento_descricao VARCHAR;
+    v_evento_data TIMESTAMP;
+    v_visita_count INT;
+    v_total_doacao NUMERIC := 0;
+    patrocinador RECORD;  -- Correção: usar RECORD para o tipo de variável de laço
+    objeto RECORD;        -- Correção: usar RECORD para o tipo de variável de laço
+    comentario RECORD;    -- Correção: usar RECORD para o tipo de variável de laço
+BEGIN
+    -- 1. Obter informações gerais do evento
+    SELECT nome, descricao, data
+    INTO v_evento_nome, v_evento_descricao, v_evento_data
+    FROM eventos
+    WHERE id_evento = evento_id;
+
+    -- Verificar se o evento existe
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Evento com ID % não encontrado.', evento_id;
+    END IF;
+
+    -- 2. Contar o número de visitantes
+    SELECT COUNT(DISTINCT id_visitante)
+    INTO v_visita_count
+    FROM eventos_visitantes
+    WHERE id_evento = evento_id;
+
+    -- 3. Calcular o total de doações para o evento (pelos patrocinadores)
+    FOR patrocinador IN
+        SELECT p.nome, pe.valor_doado
+        FROM patrocinadores p
+        INNER JOIN patrocinadores_exposicoes pe ON p.id_patrocinador = pe.id_patrocinador
+        WHERE pe.id_exposicao IN (SELECT id_exposicao FROM eventos_exposicoes WHERE id_evento = evento_id)
+    LOOP
+        v_total_doacao := v_total_doacao + patrocinador.valor_doado;
+    END LOOP;
+
+    -- 4. Obter todos os objetos relacionados ao evento (pelas exposições)
+    FOR objeto IN
+        SELECT o.nome, o.tipo, o.origem
+        FROM objetos o
+        INNER JOIN exposicoes_objetos eo ON o.id_objeto = eo.id_objeto
+        INNER JOIN eventos_exposicoes ee ON eo.id_exposicao = ee.id_exposicao
+        WHERE ee.id_evento = evento_id
+    LOOP
+        RAISE NOTICE 'Objeto: %, Tipo: %, Origem: %', objeto.nome, objeto.tipo, objeto.origem;
+    END LOOP;
+
+    -- 5. Obter comentários dos visitantes sobre exposições do evento
+    FOR comentario IN
+        SELECT v.nome AS visitante_nome, c.texto_comentario, e.nome AS exposicao_nome
+        FROM comentarios c
+        INNER JOIN visitantes v ON c.id_visitante = v.id_visitante
+        INNER JOIN exposicoes e ON c.id_exposicao = e.id_exposicao
+        INNER JOIN eventos_exposicoes ee ON e.id_exposicao = ee.id_exposicao
+        WHERE ee.id_evento = evento_id
+    LOOP
+        RAISE NOTICE 'Visitante: %, Exposição: %, Comentário: %', comentario.visitante_nome, comentario.exposicao_nome, comentario.texto_comentario;
+    END LOOP;
+
+    -- Exibir informações gerais do evento
+    RAISE NOTICE 'Evento: %, Descrição: %, Data: %, Visitantes: %, Total de Doações: %.2f',
+        v_evento_nome, v_evento_descricao, v_evento_data, v_visita_count, v_total_doacao;
+END;
+$$;
+
+CALL gerar_relatorio_evento(2);
