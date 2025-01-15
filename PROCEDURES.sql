@@ -36,10 +36,9 @@ BEGIN
         WHERE id_objeto = obj.id_objeto;
     END LOOP;
 
-    -- Exibe o somatório das doações para redistribuição
     RAISE NOTICE 'Soma das doações (5%%): %', soma_redistribuicao;
 
-    -- Conta quantos objetos estão abaixo da média para distribuir igualmente
+    -- Conta quantos objetos estão abaixo da média
     SELECT COUNT(DISTINCT id_objeto) INTO total_abaixo_media
     FROM "doacoes"
     WHERE id_objeto IN (
@@ -49,14 +48,12 @@ BEGIN
         HAVING SUM(valor_doacao) < media_total
     );
 
-    -- Exibe o número de objetos abaixo da média
     RAISE NOTICE 'Quantidade de objetos abaixo da média: %', total_abaixo_media;
 
-    -- Se houver objetos abaixo da média, distribui igualmente o valor somado
+    -- Se houver, distribui igualmente o valor somado
     IF total_abaixo_media > 0 THEN
         valor_redistribuicao := soma_redistribuicao / total_abaixo_media;
 
-        -- Exibe o valor que será redistribuído entre os objetos abaixo da média
         RAISE NOTICE 'Valor a ser redistribuido: %', valor_redistribuicao;
 
         -- Redistribui igualmente entre os objetos abaixo da média
@@ -70,7 +67,7 @@ BEGIN
                 HAVING SUM(valor_doacao) < media_total
             )
         LOOP
-            -- Atualiza as doações para objetos abaixo da média
+            -- Atualiza as doacoes para objetos abaixo da média
             UPDATE "doacoes"
             SET valor_doacao = valor_doacao + valor_redistribuicao
             WHERE id_objeto = obj.id_objeto;
