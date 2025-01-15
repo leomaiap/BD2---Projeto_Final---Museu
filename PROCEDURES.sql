@@ -176,3 +176,69 @@ END;
 $$;
 
 CALL gerar_relatorio_evento(2);
+
+-----------------------------------------------------------------------------------------------------
+--3 retorna a previsão do número de visitantes para os próximos 6 meses,
+--com base nos dados dos últimos 6 meses, aplicando um crescimento de 30% a cada mês.
+CREATE OR REPLACE FUNCTION prever_tendencias_visita()
+RETURNS TABLE (mes TIMESTAMP, visitantes_previstos INT, tipo TEXT) AS
+$$
+DECLARE
+    mes_inicio TIMESTAMP;
+    previsaoVisitantes NUMERIC;
+    i INT;
+BEGIN
+  
+    IF EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'previsao') THEN
+        DROP TABLE previsao;
+    END IF;
+
+    -- Criar a tabela temporária
+    CREATE TEMP TABLE previsao (
+        mes_ano TIMESTAMP,
+        visitantes INT,
+        tipo TEXT
+    );
+
+    -- Inserir os dados dos últimos 6 meses na tabela temporária
+    INSERT INTO previsao (mes_ano, visitantes, tipo)
+    SELECT 
+        DATE_TRUNC('month', e.data) AS mes_ano,  --pegar o mês e o ano
+        COUNT(*) AS visitantes,
+        'real' AS tipo 
+    FROM ingressos i
+    JOIN eventos e ON i.id_evento = e.id_evento
+    WHERE e.data >= CURRENT_DATE - INTERVAL '1 year'
+    GROUP BY DATE_TRUNC('month', e.data)  
+    ORDER BY mes_ano ASC 
+    LIMIT 6;
+
+    --previsões para os próximos 6 meses
+    FOR i IN 1..6 LOOP
+        -- Calcular a média dos 6 meses mais recentes
+        SELECT AVG(v.visitantes)+(0.3*i) INTO previsaoVisitantes
+        FROM (
+            SELECT visitantes
+            FROM previsao
+            ORDER BY mes_ano ASC  
+            LIMIT 6
+        ) v;
+
+        -- Inserir a previsão calculada na tabela temporária para o mês
+        mes_inicio := CURRENT_DATE + INTERVAL '1 month' * i;
+        INSERT INTO previsao (mes_ano, visitantes, tipo)
+        VALUES (mes_inicio, ROUND(previsaoVisitantes), 'previsao');
+    END LOOP;
+
+    -- Retornar as previsões calculadas em ordem crescente de mês
+    RETURN QUERY SELECT mes_ano, visitantes, previsao.tipo FROM previsao
+    ORDER BY mes_ano ASC;  
+    
+END;
+$$
+LANGUAGE plpgsql;
+
+SELECT * FROM prever_tendencias_visita();
+
+--------------------------------------------------------------------------------------------------
+--4
