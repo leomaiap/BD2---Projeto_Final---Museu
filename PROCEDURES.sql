@@ -106,7 +106,7 @@ SELECT redistribuir_doacoes();
 -------------------------------------------------------------------------------------------
 --2 Gerar Relatório Completo de um Evento
 
-CREATE PROCEDURE gerar_relatorio_evento(IN evento_id INT)
+CREATE OR REPLACE PROCEDURE gerar_relatorio_evento(IN evento_id INT)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -241,4 +241,76 @@ LANGUAGE plpgsql;
 SELECT * FROM prever_tendencias_visita();
 
 --------------------------------------------------------------------------------------------------
---4
+--4 Envia notificações de convite para visitantes que não vão ao museu há mais de 1 mês
+CREATE OR REPLACE PROCEDURE enviar_convites_ausentes(meses_sem_visita INT)
+AS $$
+DECLARE 
+	visitante RECORD;
+BEGIN
+    -- Iterar sobre os visitantes
+    FOR visitante IN (
+        SELECT v.id_visitante, v.nome, v.email, MAX(i.data_compra) AS ultima_visita
+        FROM visitantes v
+        LEFT JOIN ingressos i ON v.id_visitante = i.id_visitante
+        GROUP BY v.id_visitante, v.nome, v.email
+        HAVING MAX(i.data_compra) IS NULL OR MAX(i.data_compra) < NOW() - INTERVAL '1 month' * meses_sem_visita
+    ) LOOP
+        -- Enviar notificação simulada
+        RAISE NOTICE 'Enviando convite para % (%), última visita: %', 
+                     visitante.nome, visitante.email, visitante.ultima_visita;
+    END LOOP;
+END;
+$$
+LANGUAGE plpgsql;
+
+/*
+TESTE: CALL enviar_convites_ausentes(10);
+
+EXEMPLO:
+NOTA:  Enviando convite para Visitante 4 (visitante4@email.com), última visita: 2024-02-27 06:20:51.896235
+NOTA:  Enviando convite para Visitante 15 (visitante15@email.com), última visita: <NULL>
+*/
+--------------------------------------------------------------------------------------------------
+--5 Calcula a arrecadação mensal do museu
+CREATE OR REPLACE PROCEDURE calcular_total_arrecadado_por_mes()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    mes_inicio DATE := (SELECT MIN(data_compra) FROM ingressos);
+    mes_fim DATE := (SELECT MAX(data_compra) FROM ingressos);
+    mes_atual DATE;
+    total_doacoes NUMERIC := 0;
+    total_ingressos NUMERIC := 0;
+BEGIN
+    mes_atual := mes_inicio;
+
+    -- Loop para cada mês entre a data mínima e máxima
+    WHILE mes_atual <= mes_fim LOOP
+        -- Calcular total de doações no mês atual
+        SELECT COALESCE(SUM(valor_doacao), 0)
+        INTO total_doacoes
+        FROM doacoes
+        WHERE DATE_TRUNC('month', data_doacao) = mes_atual;
+
+        -- Calcular total de ingressos no mês atual
+        SELECT COALESCE(SUM(valor), 0)
+        INTO total_ingressos
+        FROM ingressos
+        WHERE DATE_TRUNC('month', data_compra) = mes_atual;
+
+        -- Exibir os resultados do mês atual
+        RAISE NOTICE 'Mês: %, Total Doações: %, Total Ingressos: %, Total Arrecadado: %', 
+            mes_atual, total_doacoes, total_ingressos, total_doacoes + total_ingressos;
+
+        -- Avançar para o próximo mês
+        mes_atual := mes_atual + INTERVAL '1 month';
+    END LOOP;
+END;
+$$;
+
+/*
+TESTE: CALL calcular_total_arrecadado_por_mes()
+
+EXEMPLO:
+NOTA:  Mês: 2024-01-01, Total Doações: 1774.53, Total Ingressos: 200, Total Arrecadado: 1974.53
+*/

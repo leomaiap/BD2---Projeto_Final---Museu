@@ -131,12 +131,13 @@ BEGIN
 
     -- Inserir Doações
     FOR i IN 1..30 LOOP
-        INSERT INTO doacoes (id_doacao, id_visitante, id_objeto, valor_doacao)
+        INSERT INTO doacoes (id_doacao, id_visitante, id_objeto, valor_doacao, data_doacao)
         VALUES (
             i,
             floor(random() * 50 + 1),
             floor(random() * 20 + 1),
-            floor(random() * 1000 + 100)
+            floor(random() * 1000 + 100),
+			random_date('2024-01-01'::timestamp, '2024-12-31'::timestamp)
         );
     END LOOP;
 

@@ -71,7 +71,8 @@ CREATE TABLE "doacoes" (
   "id_doacao" integer PRIMARY KEY,
   "id_visitante" integer NOT NULL,
   "id_objeto" integer NOT NULL,
-  "valor_doacao" numeric(6,2) NOT NULL
+  "valor_doacao" numeric(6,2) NOT NULL,
+  "data_doacao" timestamp NOT NULL
 );
 
 CREATE TABLE "comentarios" (
