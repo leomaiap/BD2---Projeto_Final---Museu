@@ -4,141 +4,140 @@
 
 CREATE TABLE "objetos" (
   "id_objeto" integer PRIMARY KEY,
-  "nome" varchar,
-  "tipo" varchar,
-  "origem" varchar,
-  "data" timestamp
+  "nome" varchar NOT NULL,
+  "tipo" varchar NOT NULL,
+  "origem" varchar NOT NULL,
+  "data" timestamp NOT NULL
 );
 
 CREATE TABLE "exposicoes" (
   "id_exposicao" integer PRIMARY KEY,
-  "nome" varchar,
+  "nome" varchar NOT NULL,
   "descricao" varchar,
-  "data_inicio" timestamp,
-  "data_fim" timestamp
+  "data_inicio" timestamp NOT NULL,
+  "data_fim" timestamp NOT NULL
 );
 
 CREATE TABLE "visitantes" (
   "id_visitante" integer PRIMARY KEY,
-  "nome" varchar,
-  "email" varchar,
+  "nome" varchar NOT NULL,
+  "email" varchar NOT NULL,
   "data_nascimento" timestamp
 );
 
 CREATE TABLE "pesquisadores" (
   "id_pesquisador" integer PRIMARY KEY,
-  "nome" varchar,
-  "especialidade" varchar,
+  "nome" varchar NOT NULL,
+  "especialidade" varchar NOT NULL,
   "id_objeto" integer
 );
 
 CREATE TABLE "colecoes" (
   "id_colecao" integer PRIMARY KEY,
-  "nome" varchar,
+  "nome" varchar NOT NULL,
   "descricao" varchar,
-  "id_objeto" integer
+  "id_objeto" integer NOT NULL
 );
 
 CREATE TABLE "funcionarios" (
   "id_funcionario" integer PRIMARY KEY,
-  "nome" varchar,
-  "cargo" varchar,
-  "setor" varchar
+  "nome" varchar NOT NULL,
+  "cargo" varchar NOT NULL,
+  "setor" varchar NOT NULL
 );
 
 CREATE TABLE "eventos" (
   "id_evento" integer PRIMARY KEY,
-  "nome" varchar,
+  "nome" varchar NOT NULL,
   "descricao" varchar,
-  "data" timestamp
+  "data" timestamp NOT NULL
 );
 
 CREATE TABLE "patrocinadores" (
   "id_patrocinador" integer PRIMARY KEY,
-  "nome" varchar,
-  "tipo" varchar
+  "nome" varchar NOT NULL,
+  "tipo" varchar NOT NULL
 );
 
 CREATE TABLE "ingressos" (
   "id_ingresso" integer PRIMARY KEY,
-  "id_visitante" integer,
-  "id_evento" integer,
-  "data_compra" timestamp,
-  "valor" numeric
+  "id_visitante" integer NOT NULL,
+  "id_evento" integer NOT NULL,
+  "data_compra" timestamp NOT NULL,
+  "valor" numeric NOT NULL
 );
 
 CREATE TABLE "doacoes" (
   "id_doacao" integer PRIMARY KEY,
-  "id_visitante" integer,
-  "id_objeto" integer,
-  "valor_doacao" integer
+  "id_visitante" integer NOT NULL,
+  "id_objeto" integer NOT NULL,
+  "valor_doacao" numeric(6,2) NOT NULL
 );
 
 CREATE TABLE "comentarios" (
   "id_comentario" integer PRIMARY KEY,
-  "id_visitante" integer,
-  "id_exposicao" integer,
-  "texto_comentario" varchar
+  "id_visitante" integer NOT NULL,
+  "id_exposicao" integer NOT NULL,
+  "texto_comentario" varchar NOT NULL
 );
 
 CREATE TABLE "transferencias" (
   "id_transferencia" integer PRIMARY KEY,
-  "id_objeto" integer,
-  "destino" varchar,
-  "data_transferencia" timestamp
+  "id_objeto" integer NOT NULL,
+  "destino" varchar NOT NULL,
+  "data_transferencia" timestamp NOT NULL
 );
 
 CREATE TABLE "curadores" (
   "id_curador" integer PRIMARY KEY,
-  "nome" varchar
+  "nome" varchar NOT NULL
 );
 
 CREATE TABLE "exposicoes_objetos" (
-  "id_exposicao" integer,
-  "id_objeto" integer,
+  "id_exposicao" integer NOT NULL,
+  "id_objeto" integer NOT NULL,
   PRIMARY KEY ("id_exposicao", "id_objeto")
 );
 
 CREATE TABLE "patrocinadores_exposicoes" (
-  "id_patrocinador" integer,
-  "id_exposicao" integer,
-  "valor_doado" numeric,
+  "id_patrocinador" integer NOT NULL,
+  "id_exposicao" integer NOT NULL,
+  "valor_doado" numeric NOT NULL,
   PRIMARY KEY ("id_patrocinador", "id_exposicao")
 );
 
 CREATE TABLE "curadores_exposicoes" (
-  "id_curador" integer,
-  "id_exposicao" integer,
+  "id_curador" integer NOT NULL,
+  "id_exposicao" integer NOT NULL,
   PRIMARY KEY ("id_curador", "id_exposicao")
 );
 
 CREATE TABLE "funcionarios_exposicoes" (
-  "id_funcionario" integer,
-  "id_exposicao" integer,
-  "papel" varchar,
+  "id_funcionario" integer NOT NULL,
+  "id_exposicao" integer NOT NULL,
+  "papel" varchar NOT NULL,
   PRIMARY KEY ("id_funcionario", "id_exposicao")
 );
 
 CREATE TABLE "funcionarios_eventos" (
-  "id_funcionario" integer,
-  "id_evento" integer,
-  "papel" varchar,
+  "id_funcionario" integer NOT NULL,
+  "id_evento" integer NOT NULL,
+  "papel" varchar NOT NULL,
   PRIMARY KEY ("id_funcionario", "id_evento")
 );
 
 CREATE TABLE "eventos_visitantes" (
-  "id_evento" integer,
-  "id_visitante" integer,
+  "id_evento" integer NOT NULL,
+  "id_visitante" integer NOT NULL,
   "tipo_participacao" varchar,
   PRIMARY KEY ("id_evento", "id_visitante")
 );
 
 CREATE TABLE "eventos_exposicoes" (
-  "id_evento" integer,
-  "id_exposicao" integer,
+  "id_evento" integer NOT NULL,
+  "id_exposicao" integer NOT NULL,
   PRIMARY KEY ("id_evento", "id_exposicao")
 );
-
 
 
 ALTER TABLE "pesquisadores" 
