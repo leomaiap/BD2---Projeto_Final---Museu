@@ -48,4 +48,39 @@ VALUES (181, 1, 1, 200);
 -- Verificar se o ingresso foi gerado
 SELECT * FROM ingressos WHERE id_visitante = 1 AND valor = 0;
 
---2
+--------------------------------------------------------------------------
+
+--2  Controle de Exclusividade de Comentários (o mesmo visitante nao pode comentar mais de uma vez em uma mesma esxposicao)
+CREATE OR REPLACE FUNCTION exclusividade_comentarios()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verifica se já existe um comentário do mesmo visitante na mesma exposição
+    IF EXISTS (
+        SELECT 1 
+        FROM comentarios
+        WHERE id_visitante = NEW.id_visitante 
+          AND id_exposicao = NEW.id_exposicao
+    ) THEN
+        -- Bloqueia a transação com uma mensagem de erro
+        RAISE EXCEPTION 'Visitante % já comentou na exposição %', 
+                         NEW.id_visitante, NEW.id_exposicao;
+    END IF;
+
+    -- Permite a inserção caso não haja conflito
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Criação do trigger
+CREATE OR REPLACE TRIGGER tg_exclusividade_comentarios
+BEFORE INSERT ON comentarios
+FOR EACH ROW
+EXECUTE FUNCTION exclusividade_comentarios();
+
+INSERT INTO comentarios (id_comentario, id_visitante, id_exposicao, texto_comentario) 
+VALUES (100, 1, 2, 'Ótima exposição!');
+
+INSERT INTO comentarios (id_comentario, id_visitante, id_exposicao, texto_comentario) 
+VALUES (102, 1, 2, 'Gostei muito!');
+
+
